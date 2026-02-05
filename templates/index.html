@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Joe Task Board - 任務管理儀表板</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css?v=2') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 側邊導航 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <i class="fas fa-clipboard-check"></i>
+                    <h1>Joe Board</h1>
+                </div>
+            </div>
+            
+            <nav class="nav-menu">
+                <div class="nav-section">
+                    <div class="nav-section-title">主要</div>
+                    <a href="#" class="nav-item active" onclick="showDashboard()">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>儀表板</span>
+                    </a>
+                    
+                    <a href="#" class="nav-item" onclick="showBoard()">
+                        <i class="fas fa-columns"></i>
+                        <span>任務看板</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">管理</div>
+                    <a href="#" class="nav-item" onclick="filterByAssignee('user')">
+                        <i class="fas fa-user"></i>
+                        <span>我的任務</span>
+                    </a>
+                    
+                    <a href="#" class="nav-item" onclick="filterByAssignee('joe')">
+                        <i class="fas fa-robot"></i>
+                        <span>Joe 的任務</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 主內容 -->
+        <main class="main-content">
+            
+            <!-- 頁首 -->
+            <header class="page-header">
+                <div>
+                    <h2 id="pageTitle">儀表板</h2>
+                    <div class="breadcrumb">
+                        <span>首頁</span>
+                        <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
+                        <span id="breadcrumbCurrent">儀表板</span>
+                    </div>
+                </div>
+                
+                <button class="btn-primary" onclick="openModal()">
+                    <i class="fas fa-plus"></i>
+                    新增任務
+                </button>
+            </header>
+
+            <!-- 儀表板頁面 -->
+            <div id="dashboardPage">
+                <!-- 統計卡片 -->
+                <div class="dashboard-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-label">總任務數</span>
+                            <div class="stat-icon blue">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="statTotal">0</div>
+                        <div class="stat-change">所有任務</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-label">待處理</span>
+                            <div class="stat-icon yellow">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="statTodo">0</div>
+                        <div class="stat-change" id="statTodoPercent">0%</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-label">進行中</span>
+                            <div class="stat-icon purple">
+                                <i class="fas fa-spinner"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="statInProgress">0</div>
+                        <div class="stat-change" id="statInProgressPercent">0%</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-label">已完成</span>
+                            <div class="stat-icon green">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="statDone">0</div>
+                        <div class="stat-change" id="statDonePercent">0%</div>
+                    </div>
+                </div>
+
+                <!-- 高優先級任務 -->
+                <div class="content-section">
+                    <div class="section-header">
+                        <h3 class="section-title">🔥 高優先級任務</h3>
+                        <button class="btn-secondary" onclick="showBoard()">
+                            查看全部
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                    <div class="board-container">
+                        <div id="highPriorityTasks">
+                            <!-- 動態填入 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 即將到期 -->
+                <div class="content-section">
+                    <div class="section-header">
+                        <h3 class="section-title">⏰ 即將到期</h3>
+                    </div>
+                    <div class="board-container">
+                        <div id="upcomingTasks">
+                            <!-- 動態填入 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 任務看板頁面 -->
+            <div id="boardPage" style="display: none;">
+                <div class="content-section">
+                    <div class="section-header">
+                        <h3 class="section-title">任務泳道</h3>
+                        <div class="section-actions">
+                            <button class="btn-secondary" onclick="resetFilter()">
+                                <i class="fas fa-filter"></i>
+                                顯示全部
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="board-container">
+                        <div class="board">
+                            <!-- 待辦 -->
+                            <div class="board-column" data-status="todo">
+                                <div class="column-header">
+                                    <div class="column-title todo">
+                                        <i class="fas fa-circle"></i>
+                                        <span>待辦</span>
+                                    </div>
+                                    <span class="column-count" id="count-todo">0</span>
+                                </div>
+                                <div class="task-list" id="todo-list"></div>
+                            </div>
+
+                            <!-- 進行中 -->
+                            <div class="board-column" data-status="in_progress">
+                                <div class="column-header">
+                                    <div class="column-title in-progress">
+                                        <i class="fas fa-spinner"></i>
+                                        <span>進行中</span>
+                                    </div>
+                                    <span class="column-count" id="count-in_progress">0</span>
+                                </div>
+                                <div class="task-list" id="in_progress-list"></div>
+                            </div>
+
+                            <!-- 已完成 -->
+                            <div class="board-column" data-status="done">
+                                <div class="column-header">
+                                    <div class="column-title done">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>已完成</span>
+                                    </div>
+                                    <span class="column-count" id="count-done">0</span>
+                                </div>
+                                <div class="task-list" id="done-list"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- 新增/編輯任務 Modal -->
+    <div id="taskModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">新增任務</h3>
+                <button class="modal-close" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="taskForm" onsubmit="handleSubmit(event)">
+                <input type="hidden" id="taskId">
+                
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">標題</label>
+                        <input type="text" id="taskTitle" class="form-input" required 
+                               placeholder="輸入任務標題...">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">描述</label>
+                        <textarea id="taskDescription" class="form-textarea" rows="3" 
+                                  placeholder="任務描述..."></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">狀態</label>
+                            <select id="taskStatus" class="form-select">
+                                <option value="todo">待辦</option>
+                                <option value="in_progress">進行中</option>
+                                <option value="done">已完成</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">優先級</label>
+                            <select id="taskPriority" class="form-select">
+                                <option value="high">高</option>
+                                <option value="medium" selected>中</option>
+                                <option value="low">低</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">指派給</label>
+                            <select id="taskAssignee" class="form-select">
+                                <option value="user">用戶</option>
+                                <option value="joe">Joe</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">截止日期</label>
+                            <input type="date" id="taskDueDate" class="form-input">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">標籤（用逗號分隔）</label>
+                        <input type="text" id="taskTags" class="form-input" 
+                               placeholder="例如: 重要, X-Bookmarks, 開發">
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeModal()">
+                        取消
+                    </button>
+                    <button type="submit" class="btn-primary">
+                        儲存任務
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 任務詳情 Modal -->
+    <div id="detailModal" class="modal-overlay">
+        <div class="modal large">
+            <div class="modal-header">
+                <h3 class="modal-title" id="detailTitle">任務詳情</h3>
+                <button class="modal-close" onclick="closeDetailModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div id="detailContent">
+                    <!-- 動態填入 -->
+                </div>
+                
+                <div class="add-activity">
+                    <label class="form-label">新增評論</label>
+                    <textarea id="newActivity" placeholder="輸入評論..." 
+                              rows="3"></textarea>
+                    <button class="btn-primary" onclick="addActivity()" 
+                            style="margin-top: 12px;">
+                        <i class="fas fa-paper-plane"></i>
+                        發送
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js?v=2') }}"></script>
+</body>
+</html>

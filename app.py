@@ -177,6 +177,15 @@ def create_activity():
 def index():
     return render_template('index.html')
 
+# Serve static files explicitly for Render
+@app.route('/static/css/<path:filename>')
+def serve_css(filename):
+    return send_from_directory(os.path.join(app.root_path, 'static/css'), filename)
+
+@app.route('/static/js/<path:filename>')
+def serve_js(filename):
+    return send_from_directory(os.path.join(app.root_path, 'static/js'), filename)
+
 if __name__ == '__main__':
     init_db()
     # Use PORT environment variable for Render compatibility

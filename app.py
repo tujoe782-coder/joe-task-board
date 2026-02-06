@@ -4,7 +4,13 @@ from datetime import datetime
 import sqlite3
 import json
 
-app = Flask(__name__, static_folder='static', static_url_path='/static')
+# Get the directory containing this file
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+app = Flask(__name__, 
+    static_folder=os.path.join(BASE_DIR, 'static'),
+    static_url_path='/static'
+)
 
 # Configuration for production
 app.config['JSON_AS_ASCII'] = False
@@ -180,11 +186,11 @@ def index():
 # Serve static files explicitly for Render
 @app.route('/static/css/<path:filename>')
 def serve_css(filename):
-    return send_from_directory(os.path.join(app.root_path, 'static/css'), filename)
+    return send_from_directory(os.path.join(BASE_DIR, 'static', 'css'), filename)
 
 @app.route('/static/js/<path:filename>')
 def serve_js(filename):
-    return send_from_directory(os.path.join(app.root_path, 'static/js'), filename)
+    return send_from_directory(os.path.join(BASE_DIR, 'static', 'js'), filename)
 
 if __name__ == '__main__':
     init_db()

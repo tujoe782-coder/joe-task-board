@@ -1,16 +1,10 @@
 import os
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify
 from datetime import datetime
 import sqlite3
 import json
 
-# Get the directory containing this file
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-app = Flask(__name__, 
-    static_folder=os.path.join(BASE_DIR, 'static'),
-    static_url_path='/static'
-)
+app = Flask(__name__)
 
 # Configuration for production
 app.config['JSON_AS_ASCII'] = False
@@ -182,15 +176,6 @@ def create_activity():
 @app.route('/')
 def index():
     return render_template('index.html')
-
-# Serve static files explicitly for Render
-@app.route('/static/css/<path:filename>')
-def serve_css(filename):
-    return send_from_directory(os.path.join(BASE_DIR, 'static', 'css'), filename)
-
-@app.route('/static/js/<path:filename>')
-def serve_js(filename):
-    return send_from_directory(os.path.join(BASE_DIR, 'static', 'js'), filename)
 
 if __name__ == '__main__':
     init_db()
